@@ -6,6 +6,7 @@
 > - **Cypher / `query_graph`** — populate node properties carried through `WITH` aggregation ([#465](https://github.com/DeusData/codebase-memory-mcp/pull/465)); fix label-filtered traversal silently truncating at 10 rows ([#412](https://github.com/DeusData/codebase-memory-mcp/pull/412)).
 > - **MCP tools** — `detect_changes` honors `since` ([#464](https://github.com/DeusData/codebase-memory-mcp/pull/464)); definition-preferred name resolution with ambiguity reporting ([#466](https://github.com/DeusData/codebase-memory-mcp/pull/466)); valid UTF-8 in `get_code_snippet` ([#526](https://github.com/DeusData/codebase-memory-mcp/pull/526)).
 > - **Robustness / build** — stack-buffer-overflow fix in `append_args_json` ([#475](https://github.com/DeusData/codebase-memory-mcp/pull/475)); JSON control-character escaping ([#527](https://github.com/DeusData/codebase-memory-mcp/pull/527)); preserve ADRs across a full re-index ([#539](https://github.com/DeusData/codebase-memory-mcp/pull/539)); libgit2 ≥ 1.8 build fix ([#512](https://github.com/DeusData/codebase-memory-mcp/pull/512)).
+> - **Agent-native enhancements (this fork)** — a new **`explore`** MCP tool: *one* call returns the blast-radius (attributed callers + inline fan-in hotspot flags) **and** the verbatim line-numbered source of the matched symbols grouped by file, with a `query_graph`/Cypher escape-hatch — built for AI agents to read like a `Read`. Plus a Swift **enum-static dedup fix** (an `enum`'s `static func`s are no longer double-emitted as both a Method and a Function node).
 >
 > All credit for the original engine belongs to DeusData. License unchanged — see [LICENSE](LICENSE).
 
@@ -28,7 +29,7 @@ cp build/c/codebase-memory-mcp ~/.local/bin/
 
 # stdio MCP server, available in all projects:
 claude mcp add codebase-memory -s user -- ~/.local/bin/codebase-memory-mcp
-# tools: index_repository, query_graph, trace_path, get_code_snippet, detect_changes … (14 total)
+# tools: explore, index_repository, query_graph, trace_path, get_code_snippet, detect_changes … (15 total)
 ```
 
 Confirm the integrated fixes are live (e.g. **#465** — node properties survive a `WITH` aggregation, which returns blank on stock upstream):

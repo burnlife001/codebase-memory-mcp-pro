@@ -514,7 +514,9 @@ static bool incr_label_is_registry_symbol(const char *label) {
                      /* Swift idiomatic type kinds — keep them registry symbols (WS2b). */
                      strcmp(label, "Struct") == 0 || strcmp(label, "Enum") == 0 ||
                      strcmp(label, "Actor") == 0 ||
-                     strcmp(label, "Variable") == 0 || strcmp(label, "Field") == 0);
+                     strcmp(label, "Variable") == 0 || strcmp(label, "Field") == 0 ||
+                     /* Swift/Kotlin enum cases — mirror full-index registry (M2-c). */
+                     strcmp(label, "EnumCase") == 0);
 }
 
 /* Callback for cbm_gbuf_foreach_node: seed the registry with the existing

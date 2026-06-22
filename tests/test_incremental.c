@@ -2874,6 +2874,45 @@ TEST(tool_delete_and_verify) {
     PASS();
 }
 
+/* M2-b2: detect_changes wires the (previously inert) `depth` param and emits an
+ * `impacted_count`. This asserts the new response shape + depth clamping/echo on
+ * the shared fixture (an unchanged diff → counts may be 0, but the machinery and
+ * clamping are exercised deterministically). */
+TEST(tool_detect_changes_impacted_depth) {
+    double ms;
+
+    /* Default depth: new keys present. */
+    char *r = call_tool_timed("detect_changes", &ms, "{\"project\":\"%s\"}", g_project);
+    TOOL_OK(r, ms);
+    ASSERT(resp_has_key(r, "impacted_count"));
+    ASSERT(resp_has_key(r, "depth"));
+    free(r);
+
+    /* Explicit depth=0 → echoed verbatim (direct symbols only). */
+    r = call_tool_timed("detect_changes", &ms, "{\"project\":\"%s\",\"depth\":0}", g_project);
+    TOOL_OK(r, ms);
+    ASSERT_EQ(count_in_response(r, "depth"), 0);
+    int impacted_0 = count_in_response(r, "impacted_count");
+    ASSERT_GTE(impacted_0, 0);
+    free(r);
+
+    /* depth=1 → echoed; impact set is a superset of depth=0 (transitive callers add). */
+    r = call_tool_timed("detect_changes", &ms, "{\"project\":\"%s\",\"depth\":1}", g_project);
+    TOOL_OK(r, ms);
+    ASSERT_EQ(count_in_response(r, "depth"), 1);
+    ASSERT_GTE(count_in_response(r, "impacted_count"), impacted_0);
+    free(r);
+
+    /* Extreme depth=999 → clamped to MCP_MAX_DEPTH (15). */
+    r = call_tool_timed("detect_changes", &ms, "{\"project\":\"%s\",\"depth\":999}", g_project);
+    TOOL_OK(r, ms);
+    ASSERT_LTE(count_in_response(r, "depth"), 15);
+    ASSERT_GTE(count_in_response(r, "depth"), 0);
+    free(r);
+
+    PASS();
+}
+
 /* ══════════════════════════════════════════════════════════════════
  *  SUITE
  * ══════════════════════════════════════════════════════════════════ */
@@ -3019,6 +3058,7 @@ SUITE(incremental) {
     RUN_TEST(tool_detect_changes_since);
     RUN_TEST(tool_detect_changes_since_precedence);
     RUN_TEST(tool_detect_changes_depth);
+    RUN_TEST(tool_detect_changes_impacted_depth);
 
     /* Phase 16: manage_adr */
     RUN_TEST(tool_adr_get);
